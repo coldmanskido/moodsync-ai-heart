@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model SupplierProduct {
+  id           String          @id @default(cuid())
+  url          String          @unique
+  currentPrice Float
+  lastChecked  DateTime        @default(now())
+  priceHistory PriceHistory[]
+  tracking     TrackingEntry[]
+}
+
+model TrackingEntry {
+  id                    String          @id @default(cuid())
+  shop                  String
+  shopifyProductId      String          @unique
+  shopifyTitle          String
+  supplierProductId     String
+  costPerUnit           Float
+  shippingCost          Float           @default(0)
+  marginThreshold       Float           @default(20)
+  autoUpdatePrice       Boolean         @default(false)
+  autoStockSync         Boolean         @default(false)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  lastKnownSellingPrice Float?
+  lastPriceSyncAt       DateTime?
+  supplierProduct       SupplierProduct @relation(fields: [supplierProductId], references: [id])
+
+  @@index([shop])
+}
+
+model PriceHistory {
+  id                String          @id @default(cuid())
+  supplierProductId String
+  price             Float
+  timestamp         DateTime        @default(now())
+  supplierProduct   SupplierProduct @relation(fields: [supplierProductId], references: [id])
+
+  @@index([supplierProductId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  shop      String
+  type      String
+  productId String?
+  message   String
+  severity  String   @default("info")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([shop, read])
+}
+
+model StoreSettings {
+  shop                String   @id
+  emailAlerts         Boolean  @default(true)
+  alertEmail          String?
+  marginThreshold     Float    @default(20)
+  checkFrequency      Int      @default(6)
+  paymentProcessorFee Float    @default(2.9)
+  globalAutoReprice   Boolean  @default(true)
+  globalAutoOos       Boolean  @default(true)
+  dailyDigestEnabled  Boolean  @default(true)
+  priceDropAlerts     Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+}
