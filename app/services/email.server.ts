@@ -1,4 +1,3 @@
-
 interface MarginAlertData {
     productTitle: string;
     productImage: string;
