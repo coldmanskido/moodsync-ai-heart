@@ -33,6 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Fetch Shopify prices if needed (batch query for efficiency)
   const productIds = trackingEntries.map(e => e.shopifyProductId);
+  let shopifyPrices: Record<string, number> = {};
 
   if (productIds.length > 0) {
     try {
@@ -246,6 +247,7 @@ export default function Index() {
     }
     setExpandedRowIds(newExpandedRowIds);
   };
+
 
   return (
     <Page title="Dashboard" fullWidth>
