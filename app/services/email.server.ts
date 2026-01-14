@@ -1,3 +1,4 @@
+import { type Notification } from "@prisma/client";
 
 interface MarginAlertData {
     productTitle: string;
