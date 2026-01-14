@@ -4,13 +4,17 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { useLoaderData, useFetcher, useSearchParams } from "@remix-run/react";
 import {
     Page,
+    Layout,
     Card,
+    IndexTable,
     Thumbnail,
     TextField,
     Button,
+    useIndexResourceState,
     Text,
     Badge,
     Banner,
+    InlineGrid,
     EmptyState,
     InlineStack,
     BlockStack,

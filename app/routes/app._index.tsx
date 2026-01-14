@@ -1,6 +1,6 @@
 import { json } from "@remix-run/node";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, useFetcher } from "@remix-run/react";
+import { useLoaderData, useFetcher, useRevalidator } from "@remix-run/react";
 import { useState, useEffect } from "react";
 import {
   Page,
@@ -12,10 +12,11 @@ import {
   Badge,
   Button,
   Icon,
+  Banner,
   EmptyState,
   Spinner
 } from "@shopify/polaris";
-import { ChartVerticalIcon, AlertCircleIcon } from "@shopify/polaris-icons";
+import { ChartVerticalIcon, AlertCircleIcon, RefreshIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -33,6 +34,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Fetch Shopify prices if needed (batch query for efficiency)
   const productIds = trackingEntries.map(e => e.shopifyProductId);
+  let shopifyPrices: Record<string, number> = {};
 
   if (productIds.length > 0) {
     try {
@@ -183,6 +185,21 @@ function LazyChart({ productId }: { productId: string }) {
 }
 
 function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
+  const refreshFetcher = useFetcher();
+  const revalidator = useRevalidator();
+  const isRefreshing = refreshFetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (refreshFetcher.state === 'idle' && refreshFetcher.data != null) {
+      revalidator.revalidate();
+    }
+  }, [refreshFetcher, revalidator]);
+
+  const handleRefresh = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    refreshFetcher.submit({}, { method: 'post', action: `/api/refresh/${product.id}` });
+  };
+
   return (
     <div key={product.id} style={{ borderBottom: "1px solid #e1e3e5" }}>
       {/* Main Row */}
@@ -190,7 +207,7 @@ function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
         style={{
           padding: "16px",
           display: "grid",
-          gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+          gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr 1fr",
           gap: "16px",
           alignItems: "center",
           cursor: "pointer",
@@ -204,7 +221,9 @@ function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
         <Text variant="bodyMd" fontWeight="bold" as="span">
           {product.name}
         </Text>
-        <Text as="span">${product.supplierPrice.toFixed(2)}</Text>
+        <Text as="span">
+          {isRefreshing ? <Spinner size="small" /> : `$${product.supplierPrice.toFixed(2)}`}
+        </Text>
         <Text color={product.margin < 20 ? "critical" : "success"} as="span">
           {product.margin}%
         </Text>
@@ -216,6 +235,13 @@ function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
         >
           {isExpanded ? "Hide" : "Chart"}
         </Button>
+        <Button
+          variant="plain"
+          icon={RefreshIcon}
+          onClick={handleRefresh}
+          loading={isRefreshing}
+          accessibilityLabel="Refresh price"
+        />
         <Text as="span" tone="subdued" variant="bodySm">{product.lastChecked}</Text>
       </div>
 
@@ -245,6 +271,11 @@ export default function Index() {
       newExpandedRowIds.add(id);
     }
     setExpandedRowIds(newExpandedRowIds);
+  };
+
+  const resourceName = {
+    singular: 'product',
+    plural: 'products',
   };
 
   return (
@@ -347,7 +378,7 @@ export default function Index() {
                   <div style={{
                     padding: "16px",
                     display: "grid",
-                    gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr 1fr",
                     gap: "16px",
                     background: "#f6f6f7",
                     borderBottom: "2px solid #e1e3e5",
@@ -357,7 +388,8 @@ export default function Index() {
                     <Text as="span" variant="headingSm">Supplier Price</Text>
                     <Text as="span" variant="headingSm">Est. Margin</Text>
                     <Text as="span" variant="headingSm">Status</Text>
-                    <Text as="span" variant="headingSm">Actions</Text>
+                    <Text as="span" variant="headingSm">Chart</Text>
+                    <Text as="span" variant="headingSm">Refresh</Text>
                     <Text as="span" variant="headingSm">Last Checked</Text>
                   </div>
 
