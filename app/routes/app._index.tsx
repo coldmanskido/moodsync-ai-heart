@@ -12,6 +12,7 @@ import {
   Badge,
   Button,
   Icon,
+
   EmptyState,
   Spinner
 } from "@shopify/polaris";
@@ -247,6 +248,7 @@ export default function Index() {
     }
     setExpandedRowIds(newExpandedRowIds);
   };
+
 
   return (
     <Page title="Dashboard" fullWidth>
