@@ -12,7 +12,7 @@ import {
     Banner,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import { ProductIcon, LinkIcon, AlertCircleIcon } from "@shopify/polaris-icons";
+import {  ProductIcon, LinkIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     await authenticate.admin(request);
