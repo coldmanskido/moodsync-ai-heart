@@ -10,22 +10,16 @@ jobs:
   cla:
     runs-on: ubuntu-latest
     if: |
-      (github.event.issue.pull_request
-        && !github.event.issue.pull_request.merged_at
-        && contains(github.event.comment.body, 'signed')
-      )
-      || (github.event.pull_request && !github.event.pull_request.merged)
+      (
+        (github.event.issue.pull_request
+          && !github.event.issue.pull_request.merged_at
+          && contains(github.event.comment.body, 'signed')
+        )
+        || (github.event.pull_request && !github.event.pull_request.merged)
+      ) && secrets.CLA_TOKEN != ''
     steps:
       - name: Run CLA Action
-        if: env.HAS_CLA_TOKEN == 'true'
         uses: Shopify/shopify-cla-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
-        env:
-          HAS_CLA_TOKEN: ${{ secrets.CLA_TOKEN != '' }}
-      - name: Skip CLA Action
-        if: env.HAS_CLA_TOKEN != 'true'
-        run: echo "Skipping CLA check because CLA_TOKEN is not provided."
-        env:
-          HAS_CLA_TOKEN: ${{ secrets.CLA_TOKEN != '' }}
