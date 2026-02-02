@@ -9,14 +9,14 @@ export async function parseAliExpress(html: string): Promise<ScrapeResult | null
         let isAvailable = true; // Default to true unless proven otherwise
 
         // Method 1: Look for window.runParams (Classic AliExpress structure)
-        const runParamsMatch = html.match(/windowrunParams\s*=\s*(\{.*?\});/);
+        const runParamsMatch = html.match(/window\.runParams\s*=\s*(\{.*?\});/);
         if (runParamsMatch && runParamsMatch[1]) {
             try {
                 const data = JSON.parse(runParamsMatch[1]);
                 const strData = JSON.stringify(data);
 
                 // Price
-                const priceMatch = strData.match(/"actSkuCalPrice"\s*:\s*"([\d]+)"/);
+                const priceMatch = strData.match(/"actSkuCalPrice"\s*:\s*"([\d\.]+)"/);
                 if (priceMatch && priceMatch[1]) price = parseFloat(priceMatch[1]);
 
                 // Stock (Simple heuristic on "inventory" or "skuQuantity")
@@ -27,7 +27,7 @@ export async function parseAliExpress(html: string): Promise<ScrapeResult | null
 
         // Method 2: Regex Fallback for Price
         if (!price) {
-            const formattedPriceRegex = /"formatedAmount"\s*:\s*"[^"]*?([\d]+)"/;
+            const formattedPriceRegex = /"formatedAmount"\s*:\s*"[^"]*?([\d\.]+)"/;
             const match2 = html.match(formattedPriceRegex);
             if (match2 && match2[1]) price = parseFloat(match2[1]);
         }
