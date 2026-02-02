@@ -39,7 +39,7 @@ export async function fetchSupplierPrice(url: string): Promise<{ price: number, 
         let isAvailable = true; // Assume available for generic sites unless we find OOS text
 
         // A. Look for OpenGraph Price
-        const ogPrice = html.match(/<meta property="product:price:amount" content="([\d\.]+)"/i);
+        const ogPrice = html.match(/<meta property="product:price:amount" content="([\d.]+)"/i);
         if (ogPrice && ogPrice[1]) price = parseFloat(ogPrice[1]);
 
         // B. Look for JSON "price" keys
