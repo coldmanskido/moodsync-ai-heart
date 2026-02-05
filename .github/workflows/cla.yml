@@ -17,8 +17,8 @@ jobs:
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
       - name: Shopify CLA Action
-        if: secrets.CLA_TOKEN
+        if: ${{ secrets.CLA_TOKEN != '' }}
         uses: Shopify/shopify-cla-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          cla-token: ${{ secrets.CLA_TOKEN }}
+          cla-token: ${{ secrets.CLA_TOKEN || 'placeholder-to-prevent-validation-error' }}
