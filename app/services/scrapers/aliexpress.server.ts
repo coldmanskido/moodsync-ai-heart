@@ -16,7 +16,7 @@ export async function parseAliExpress(html: string): Promise<ScrapeResult | null
                 const strData = JSON.stringify(data);
 
                 // Price
-                const priceMatch = strData.match(/"actSkuCalPrice"\s*:\s*"([\d]+)"/);
+                const priceMatch = strData.match(/"actSkuCalPrice"\s*:\s*"([\d.]+)"/);
                 if (priceMatch && priceMatch[1]) price = parseFloat(priceMatch[1]);
 
                 // Stock (Simple heuristic on "inventory" or "skuQuantity")
@@ -27,7 +27,7 @@ export async function parseAliExpress(html: string): Promise<ScrapeResult | null
 
         // Method 2: Regex Fallback for Price
         if (!price) {
-            const formattedPriceRegex = /"formatedAmount"\s*:\s*"[^"]*?([\d]+)"/;
+            const formattedPriceRegex = /"formatedAmount"\s*:\s*"[^"]*?([\d.]+)"/;
             const match2 = html.match(formattedPriceRegex);
             if (match2 && match2[1]) price = parseFloat(match2[1]);
         }
