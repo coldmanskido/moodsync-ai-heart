@@ -21,6 +21,7 @@ import prisma from "../db.server";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const shopifyPrices: Record<string, number> = {};
   const { session, admin } = await authenticate.admin(request);
 
   // Fetch Real Data without full history for performance
