@@ -22,6 +22,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
+  const shopifyPrices: Record<string, number> = {};
 
   // Fetch Real Data without full history for performance
   const trackingEntries = await prisma.trackingEntry.findMany({
@@ -205,7 +206,7 @@ function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
           {product.name}
         </Text>
         <Text as="span">${product.supplierPrice.toFixed(2)}</Text>
-        <Text color={product.margin < 20 ? "critical" : "success"} as="span">
+        <Text tone={product.margin < 20 ? "critical" : "success"} as="span">
           {product.margin}%
         </Text>
         <Badge tone={product.status === "Safe" ? "success" : "critical"}>{product.status}</Badge>
