@@ -17,6 +17,7 @@ jobs:
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
       - uses: Shopify/shopify-cla-action@v1
+        if: github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && secrets.CLA_TOKEN != '')
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          cla-token: ${{ secrets.CLA_TOKEN }}
+          cla-token: ${{ secrets.CLA_TOKEN || 'placeholder' }}
