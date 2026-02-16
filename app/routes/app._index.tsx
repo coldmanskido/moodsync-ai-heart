@@ -31,6 +31,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderBy: { updatedAt: "desc" }
   });
 
+  const shopifyPrices: Record<string, number> = {};
+
   // Fetch Shopify prices if needed (batch query for efficiency)
   const productIds = trackingEntries.map(e => e.shopifyProductId);
 
