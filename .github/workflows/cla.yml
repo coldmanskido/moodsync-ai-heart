@@ -10,7 +10,7 @@ jobs:
   cla:
     runs-on: ubuntu-latest
     if: |
-      ${{ secrets.CLA_TOKEN != '' &&
+      ${{ secrets.CLA_TOKEN &&
       (
         (github.event.issue.pull_request
           && !github.event.issue.pull_request.merged_at
@@ -22,4 +22,4 @@ jobs:
       - uses: Shopify/shopify-cla-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          cla-token: ${{ secrets.CLA_TOKEN || 'placeholder' }}
+          cla-token: ${{ secrets.CLA_TOKEN }}
