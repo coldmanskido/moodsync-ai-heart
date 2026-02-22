@@ -48,7 +48,7 @@ export async function runPriceMonitoringBatch() {
             if (!isAvailable) {
                 // Existing OOS logic - Respect Global Kill-switch
                 if (entry.autoStockSync && settings.globalAutoOos) {
-                    await syncOutOfStock({ shop: entry.shop, shopifyProductId: entry.shopifyProductId, cost: newPrice });
+                    await syncOutOfStock(entry.shop, entry.shopifyProductId);
                 }
                 if (settings.emailAlerts && settings.alertEmail) {
                     await sendOOSAlertEmail(settings.alertEmail, {
@@ -59,7 +59,7 @@ export async function runPriceMonitoringBatch() {
             } else if (isAvailable && !wasAvailable) {
                 // VICTORY: Back in Stock! - Respect Global Kill-switch for inventory restore
                 if (entry.autoStockSync && settings.globalAutoOos) {
-                    await syncOutOfStock({ shop: entry.shop, shopifyProductId: entry.shopifyProductId, cost: newPrice });
+                    await syncOutOfStock(entry.shop, entry.shopifyProductId);
                 }
 
                 await createNotification({
