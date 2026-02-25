@@ -9,6 +9,8 @@ on:
 jobs:
   cla:
     runs-on: ubuntu-latest
+    # Check if CLA_TOKEN is set to avoid "Input required and not supplied" error.
+    # Note: secrets.CLA_TOKEN != '' works in both 'if' and 'with' contexts.
     if: >-
       ${{ secrets.CLA_TOKEN != '' && (
         (github.event.issue.pull_request
@@ -19,6 +21,7 @@ jobs:
       ) }}
     steps:
       - uses: Shopify/shopify-cla-action@v1
+        if: ${{ secrets.CLA_TOKEN != '' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
