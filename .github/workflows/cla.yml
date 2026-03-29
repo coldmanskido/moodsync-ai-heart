@@ -9,12 +9,9 @@ on:
 jobs:
   cla:
     runs-on: ubuntu-latest
-    if: |
-      (github.event.issue.pull_request
-        && !github.event.issue.pull_request.merged_at
-        && contains(github.event.comment.body, 'signed')
-      )
-      || (github.event.pull_request && !github.event.pull_request.merged)
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, 'signed')) ||
+      (github.event_name == 'pull_request_target' && !github.event.pull_request.merged && secrets.CLA_TOKEN != '')
     steps:
       - uses: Shopify/shopify-cla-action@v1
         with:
