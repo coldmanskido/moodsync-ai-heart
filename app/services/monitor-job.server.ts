@@ -2,7 +2,7 @@ import prisma from "../db.server";
 import { fetchSupplierPrice } from "./supplier-monitor.server";
 import { calculateMargin, isMarginAtRisk } from "./margin-calculator.server";
 import { updateShopifyPrice } from "./repricer.server";
-import { syncOutOfStock } from "./stock-guard.server";
+import { syncOutOfStock, syncInStock } from "./stock-guard.server";
 import { createNotification } from "./notification.server";
 import { sendMarginAlertEmail, sendOOSAlertEmail, sendPriceDropEmail, sendBackInStockEmail } from "./email.server";
 
@@ -59,7 +59,7 @@ export async function runPriceMonitoringBatch() {
             } else if (isAvailable && !wasAvailable) {
                 // VICTORY: Back in Stock! - Respect Global Kill-switch for inventory restore
                 if (entry.autoStockSync && settings.globalAutoOos) {
-                    await syncOutOfStock({ shop: entry.shop, shopifyProductId: entry.shopifyProductId, cost: newPrice });
+                    await syncInStock({ shop: entry.shop, shopifyProductId: entry.shopifyProductId, cost: newPrice });
                 }
 
                 await createNotification({
