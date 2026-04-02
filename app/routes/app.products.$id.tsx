@@ -107,7 +107,7 @@ export default function ProductDetail() {
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="headingMd">Profit Margin</Text>
-                                    <Text as="p" variant="headingMd" fontWeight="bold" textAlign="end" color="success">
+                                    <Text as="p" variant="headingMd" fontWeight="bold" textAlign="end" tone="success">
                                         {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
                                     </Text>
                                 </InlineGrid>
