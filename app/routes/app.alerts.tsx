@@ -55,7 +55,7 @@ export default function AlertsLog() {
                     </Text>
                 </IndexTable.Cell>
                 <IndexTable.Cell>
-                    <Text color={change.startsWith("+") ? "critical" : "success"} as="span">
+                    <Text tone={change.startsWith("+") ? "critical" : "success"} as="span">
                         {change}
                     </Text>
                 </IndexTable.Cell>

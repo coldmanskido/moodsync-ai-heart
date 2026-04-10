@@ -206,7 +206,7 @@ function MonitoredProductRow({ product, index, isExpanded, toggleRow }: any) {
           {product.name}
         </Text>
         <Text as="span">${product.supplierPrice.toFixed(2)}</Text>
-        <Text color={product.margin < 20 ? "critical" : "success"} as="span">
+        <Text tone={product.margin < 20 ? "critical" : "success"} as="span">
           {product.margin}%
         </Text>
         <Badge tone={product.status === "Safe" ? "success" : "critical"}>{product.status}</Badge>
