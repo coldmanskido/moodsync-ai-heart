@@ -1,6 +1,6 @@
 import shopify from "../shopify.server";
 
-export async function syncOutOfStock(shop: string, shopifyProductId: string) {
+export async function syncOutOfStock({ shop, shopifyProductId, cost }: { shop: string, shopifyProductId: string, cost: number }) {
     console.log(`[Stock Guard] Syncing OOS for ${shopifyProductId}...`);
 
     const sessionId = shopify.sessionStorage.getOfflineId(shop);
