@@ -9,14 +9,23 @@ on:
 jobs:
   cla:
     runs-on: ubuntu-latest
-    if: |
+    if: >-
       (github.event.issue.pull_request
         && !github.event.issue.pull_request.merged_at
         && contains(github.event.comment.body, 'signed')
       )
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
+      - name: Check for CLA Token
+        id: check_token
+        run: |
+          if [ -z "${{ secrets.CLA_TOKEN }}" ]; then
+            echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
       - uses: Shopify/shopify-cla-action@v1
+        if: steps.check_token.outputs.has_token == 'true'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
