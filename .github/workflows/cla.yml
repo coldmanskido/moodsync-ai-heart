@@ -9,6 +9,8 @@ on:
 jobs:
   cla:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     if: |
       (github.event.issue.pull_request
         && !github.event.issue.pull_request.merged_at
@@ -16,16 +18,8 @@ jobs:
       )
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
-      - name: Check for CLA_TOKEN
-        id: check_token
-        run: |
-          if [ -z "${{ secrets.CLA_TOKEN }}" ]; then
-            echo "has_token=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_token=true" >> $GITHUB_OUTPUT
-          fi
       - uses: Shopify/shopify-cla-action@v1
-        if: steps.check_token.outputs.has_token == 'true'
+        if: secrets.CLA_TOKEN != ''
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
