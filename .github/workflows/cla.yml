@@ -6,11 +6,12 @@ on:
   issue_comment:
     types: [created]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   cla:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     if: |
       (github.event.issue.pull_request
         && !github.event.issue.pull_request.merged_at
@@ -19,8 +20,9 @@ jobs:
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
       - uses: actions/checkout@v4
-      - uses: Shopify/shopify-cla-action@v1
-        if: secrets.CLA_TOKEN
+      - name: Run CLA Action
+        if: ${{ secrets.CLA_TOKEN != '' }}
+        uses: Shopify/shopify-cla-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}

@@ -2,6 +2,9 @@ on: [push, pull_request]
 
 name: CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   CI:
     name: CI_Node_${{ matrix.version }}
@@ -9,8 +12,6 @@ jobs:
     strategy:
       matrix:
         version: [20, 22]
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
