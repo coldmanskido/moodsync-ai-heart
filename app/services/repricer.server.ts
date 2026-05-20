@@ -33,71 +33,71 @@ export async function updateShopifyPrice(options: RepriceOptions) {
     console.log(`[Repricer] Target Margin: ${targetMarginPercent}%, New Price: ${targetPrice}`);
 
     // 2. Update Shopify
-    // We need an offline session to interact with Admin API in background
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
-    const session = await shopify.sessionStorage.loadSession(sessionId);
+    try {
+        const { admin } = await (shopify.unauthenticated as any).admin(shop);
 
-    if (!session) {
-        console.error(`[Repricer] No offline session found for shop ${shop}`);
-        return null;
-    }
-
-    const client = new shopify.clients.Graphql({ session });
-
-    // Mutation to update first variant (Simplification for MVP)
-    // In strict mode, we should map specific variants, but usually dropshipping is 1-1 or simple variants.
-    // We'll fetch the product to get the first variant ID.
-
-    // A. Get Variant ID
-    const productQuery = `query {
-        product(id: "${shopifyProductId}") {
-            variants(first: 1) {
-                edges {
-                    node {
-                        id
-                        price
+        // A. Get Variant ID
+        const productQuery = `#graphql
+            query getVariant($id: ID!) {
+                product(id: $id) {
+                    variants(first: 1) {
+                        edges {
+                            node {
+                                id
+                                price
+                            }
+                        }
                     }
                 }
             }
+        `;
+
+        const productRes = await admin.graphql(productQuery, {
+            variables: { id: shopifyProductId }
+        });
+        const productData = await productRes.json();
+        const variantId = productData.data?.product?.variants?.edges[0]?.node?.id;
+
+        if (!variantId) {
+            console.error("[Repricer] Could not find variant ID to update.");
+            return null;
         }
-    }`;
 
-    const productRes = await client.request(productQuery);
-    const variantId = productRes.data?.product?.variants?.edges[0]?.node?.id;
+        // B. Update Price
+        const updateMutation = `#graphql
+            mutation productVariantUpdate($input: ProductVariantInput!) {
+                productVariantUpdate(input: $input) {
+                    productVariant {
+                        id
+                        price
+                    }
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+        `;
 
-    if (!variantId) {
-        console.error("[Repricer] Could not find variant ID to update.");
+        const updateRes = await admin.graphql(updateMutation, {
+            variables: {
+                input: {
+                    id: variantId,
+                    price: targetPrice.toFixed(2)
+                }
+            }
+        });
+        const updateData = await updateRes.json();
+
+        if (updateData.data?.productVariantUpdate?.userErrors?.length > 0) {
+            console.error("[Repricer] Update failed:", updateData.data.productVariantUpdate.userErrors);
+            return null;
+        }
+
+        console.log(`[Repricer] Success! Updated ${variantId} to $${targetPrice}`);
+        return targetPrice;
+    } catch (error) {
+        console.error(`[Repricer] Failed to reprice:`, error);
         return null;
     }
-
-    // B. Update Price
-    const updateMutation = `mutation productVariantUpdate($input: ProductVariantInput!) {
-        productVariantUpdate(input: $input) {
-            productVariant {
-                id
-                price
-            }
-            userErrors {
-                field
-                message
-            }
-        }
-    }`;
-
-    const updateRes = await client.request(updateMutation, {
-        variables: {
-            input: {
-                id: variantId,
-                price: targetPrice.toFixed(2)
-            }
-        }
-    });
-
-    if (updateRes.data?.productVariantUpdate?.userErrors?.length > 0) {
-        console.error("[Repricer] Update failed:", updateRes.data.productVariantUpdate.userErrors);
-        return null;
-    }
-
-    console.log(`[Repricer] Success! Updated ${variantId} to $${targetPrice}`);
-    return targetPrice;
 }
