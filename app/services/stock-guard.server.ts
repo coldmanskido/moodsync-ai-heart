@@ -1,95 +1,180 @@
 import shopify from "../shopify.server";
 
-export async function syncOutOfStock(shop: string, shopifyProductId: string) {
+interface StockSyncOptions {
+    shop: string;
+    shopifyProductId: string;
+}
+
+export async function syncOutOfStock(options: StockSyncOptions) {
+    const { shop, shopifyProductId } = options;
     console.log(`[Stock Guard] Syncing OOS for ${shopifyProductId}...`);
 
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
-    const session = await shopify.sessionStorage.loadSession(sessionId);
+    try {
+        const { admin } = await (shopify.unauthenticated as any).admin(shop);
 
-    if (!session) {
-        console.error(`[Stock Guard] No offline session found for shop ${shop}`);
-        return;
-    }
+        // 1. Get Inventory Item ID (via Variant)
+        const productQuery = `#graphql
+            query getInventoryItem($id: ID!) {
+                product(id: $id) {
+                    variants(first: 1) {
+                        edges {
+                            node {
+                                id
+                                inventoryItem {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
 
-    const client = new shopify.clients.Graphql({ session });
+        const productRes = await admin.graphql(productQuery, {
+            variables: { id: shopifyProductId }
+        });
+        const productData = await productRes.json();
+        const inventoryItemId = productData.data?.product?.variants?.edges[0]?.node?.inventoryItem?.id;
 
-    // 1. Get Inventory Item ID (via Variant)
-    // We assume 1 variant for MVP simplified approach
-    const productQuery = `query {
-        product(id: "${shopifyProductId}") {
-            variants(first: 1) {
-                edges {
-                    node {
-                        id
-                        inventoryItem {
+        if (!inventoryItemId) {
+            console.error("[Stock Guard] Could not find inventory item ID.");
+            return;
+        }
+
+        // 2. Fetch locations
+        const locationQuery = `#graphql
+            query getLocations {
+                locations(first: 1) {
+                    edges {
+                        node {
                             id
                         }
                     }
                 }
             }
+        `;
+        const locationRes = await admin.graphql(locationQuery);
+        const locationData = await locationRes.json();
+        const locationId = locationData.data?.locations?.edges[0]?.node?.id;
+
+        if (!locationId) {
+            console.error("[Stock Guard] Could not find location ID.");
+            return;
         }
-    }`;
 
-    const productRes = await client.request(productQuery);
-    const inventoryItemId = productRes.data?.product?.variants?.edges[0]?.node?.inventoryItem?.id;
-
-    if (!inventoryItemId) {
-        console.error("[Stock Guard] Could not find inventory item ID.");
-        return;
-    }
-
-    // 2. Set Inventory to 0 (or some approach to mark OOS)
-    // We need to know the Location ID to set inventory.
-    // Fetch locations first.
-    const locationQuery = `query {
-        locations(first: 1) {
-            edges {
-                node {
-                    id
-                }
-            }
-        }
-    }`;
-    const locationRes = await client.request(locationQuery);
-    const locationId = locationRes.data?.locations?.edges[0]?.node?.id;
-
-    if (!locationId) {
-        console.error("[Stock Guard] Could not find location ID.");
-        return;
-    }
-
-    // 3. Adjust Inventory to 0
-    // inventorySetHandQuantities is the mutation.
-    const mutation = `mutation inventorySetHandQuantities($input: InventorySetHandQuantitiesInput!) {
-        inventorySetHandQuantities(input: $input) {
-            inventoryAdjustmentGroup {
-                reason
-                changes {
-                    name
-                    delta
-                }
-            }
-            userErrors {
-                field
-                message
-            }
-        }
-    }`;
-
-    await client.request(mutation, {
-        variables: {
-            input: {
-                reason: "correction",
-                setQuantities: [
-                    {
-                        inventoryItemId: inventoryItemId,
-                        locationId: locationId,
-                        quantity: 0
+        // 3. Adjust Inventory to 0
+        const mutation = `#graphql
+            mutation inventorySetHandQuantities($input: InventorySetHandQuantitiesInput!) {
+                inventorySetHandQuantities(input: $input) {
+                    userErrors {
+                        field
+                        message
                     }
-                ]
+                }
             }
-        }
-    });
+        `;
 
-    console.log(`[Stock Guard] Successfully set ${shopifyProductId} to Out of Stock.`);
+        await admin.graphql(mutation, {
+            variables: {
+                input: {
+                    reason: "correction",
+                    setQuantities: [
+                        {
+                            inventoryItemId: inventoryItemId,
+                            locationId: locationId,
+                            quantity: 0
+                        }
+                    ]
+                }
+            }
+        });
+
+        console.log(`[Stock Guard] Successfully set ${shopifyProductId} to Out of Stock.`);
+    } catch (error) {
+        console.error(`[Stock Guard] Failed to sync OOS:`, error);
+    }
+}
+
+export async function syncInStock(options: StockSyncOptions) {
+    const { shop, shopifyProductId } = options;
+    console.log(`[Stock Guard] Syncing Back in Stock for ${shopifyProductId}...`);
+
+    try {
+        const { admin } = await (shopify.unauthenticated as any).admin(shop);
+
+        // 1. Get Inventory Item ID
+        const productQuery = `#graphql
+            query getInventoryItem($id: ID!) {
+                product(id: $id) {
+                    variants(first: 1) {
+                        edges {
+                            node {
+                                id
+                                inventoryItem {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+
+        const productRes = await admin.graphql(productQuery, {
+            variables: { id: shopifyProductId }
+        });
+        const productData = await productRes.json();
+        const inventoryItemId = productData.data?.product?.variants?.edges[0]?.node?.inventoryItem?.id;
+
+        if (!inventoryItemId) return;
+
+        // 2. Fetch location
+        const locationQuery = `#graphql
+            query getLocations {
+                locations(first: 1) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+            }
+        `;
+        const locationRes = await admin.graphql(locationQuery);
+        const locationData = await locationRes.json();
+        const locationId = locationData.data?.locations?.edges[0]?.node?.id;
+
+        if (!locationId) return;
+
+        // 3. Restore Inventory (Set to 100 as default stock level)
+        const mutation = `#graphql
+            mutation inventorySetHandQuantities($input: InventorySetHandQuantitiesInput!) {
+                inventorySetHandQuantities(input: $input) {
+                    userErrors {
+                        field
+                        message
+                    }
+                }
+            }
+        `;
+
+        await admin.graphql(mutation, {
+            variables: {
+                input: {
+                    reason: "correction",
+                    setQuantities: [
+                        {
+                            inventoryItemId: inventoryItemId,
+                            locationId: locationId,
+                            quantity: 100
+                        }
+                    ]
+                }
+            }
+        });
+
+        console.log(`[Stock Guard] Successfully restored stock for ${shopifyProductId}.`);
+    } catch (error) {
+        console.error(`[Stock Guard] Failed to sync In Stock:`, error);
+    }
 }
