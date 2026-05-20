@@ -14,23 +14,16 @@ export async function updateShopifyPrice(options: RepriceOptions) {
     console.log(`[Repricer] Calculating new price for ${shopifyProductId}...`);
 
     // 1. Calculate Target Price
-    // Formula: Price = TotalCost / (1 - Margin%)
-    // TotalCost = Cost + Shipping
     const totalCost = newCost + shippingCost;
     const marginDecimal = targetMarginPercent / 100;
 
-    // Safety: prevent divide by zero or negative margin absurdities
     if (marginDecimal >= 0.99) {
-        console.error("Target margin too high (>=99%), aborting reprice to avoid infinite price.");
+        console.error("Target margin too high (>=99%), aborting reprice.");
         return null;
     }
 
-    // Round to 2 decimals
     const rawTargetPrice = totalCost / (1 - marginDecimal);
-    const targetPrice = Math.ceil(rawTargetPrice * 100) / 100; // Ceiling to penny for safety
-
-    console.log(`[Repricer] Cost: ${newCost}, Ship: ${shippingCost}, Total: ${totalCost}`);
-    console.log(`[Repricer] Target Margin: ${targetMarginPercent}%, New Price: ${targetPrice}`);
+    const targetPrice = Math.ceil(rawTargetPrice * 100) / 100;
 
     // 2. Update Shopify
     try {
@@ -44,7 +37,6 @@ export async function updateShopifyPrice(options: RepriceOptions) {
                         edges {
                             node {
                                 id
-                                price
                             }
                         }
                     }
@@ -59,7 +51,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         const variantId = productData.data?.product?.variants?.edges[0]?.node?.id;
 
         if (!variantId) {
-            console.error("[Repricer] Could not find variant ID to update.");
+            console.error("[Repricer] Could not find variant ID.");
             return null;
         }
 
@@ -67,10 +59,6 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         const updateMutation = `#graphql
             mutation productVariantUpdate($input: ProductVariantInput!) {
                 productVariantUpdate(input: $input) {
-                    productVariant {
-                        id
-                        price
-                    }
                     userErrors {
                         field
                         message
