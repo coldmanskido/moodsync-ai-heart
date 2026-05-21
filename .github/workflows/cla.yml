@@ -6,6 +6,9 @@ on:
   issue_comment:
     types: [created]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   cla:
     runs-on: ubuntu-latest
@@ -17,6 +20,7 @@ jobs:
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
       - uses: Shopify/shopify-cla-action@v1
+        if: ${{ secrets.CLA_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
