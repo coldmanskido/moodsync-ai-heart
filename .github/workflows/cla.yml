@@ -1,5 +1,8 @@
 name: Contributor License Agreement (CLA)
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   pull_request_target:
     types: [opened, synchronize]
@@ -17,6 +20,7 @@ jobs:
       || (github.event.pull_request && !github.event.pull_request.merged)
     steps:
       - uses: Shopify/shopify-cla-action@v1
+        if: ${{ secrets.CLA_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
