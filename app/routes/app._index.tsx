@@ -33,6 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Fetch Shopify prices if needed (batch query for efficiency)
   const productIds = trackingEntries.map(e => e.shopifyProductId);
+  const shopifyPrices: Record<string, number> = {};
 
   if (productIds.length > 0) {
     try {
