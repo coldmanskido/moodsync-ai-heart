@@ -18,10 +18,10 @@ jobs:
           && contains(github.event.comment.body, 'signed')
         )
         || (github.event.pull_request && !github.event.pull_request.merged)
-      ) && secrets.CLA_TOKEN
+      ) && secrets.CLA_TOKEN != ''
     steps:
       - uses: Shopify/shopify-cla-action@v1
-        if: ${{ secrets.CLA_TOKEN }}
+        if: ${{ secrets.CLA_TOKEN != '' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
