@@ -23,6 +23,8 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
 
+  const shopifyPrices: Record<string, number> = {};
+
   // Fetch Real Data without full history for performance
   const trackingEntries = await prisma.trackingEntry.findMany({
     include: {
