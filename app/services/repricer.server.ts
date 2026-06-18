@@ -14,41 +14,23 @@ export async function updateShopifyPrice(options: RepriceOptions) {
     console.log(`[Repricer] Calculating new price for ${shopifyProductId}...`);
 
     // 1. Calculate Target Price
-    // Formula: Price = TotalCost / (1 - Margin%)
-    // TotalCost = Cost + Shipping
     const totalCost = newCost + shippingCost;
     const marginDecimal = targetMarginPercent / 100;
 
-    // Safety: prevent divide by zero or negative margin absurdities
     if (marginDecimal >= 0.99) {
         console.error("Target margin too high (>=99%), aborting reprice to avoid infinite price.");
         return null;
     }
 
-    // Round to 2 decimals
     const rawTargetPrice = totalCost / (1 - marginDecimal);
-    const targetPrice = Math.ceil(rawTargetPrice * 100) / 100; // Ceiling to penny for safety
+    const targetPrice = Math.ceil(rawTargetPrice * 100) / 100;
 
     console.log(`[Repricer] Cost: ${newCost}, Ship: ${shippingCost}, Total: ${totalCost}`);
     console.log(`[Repricer] Target Margin: ${targetMarginPercent}%, New Price: ${targetPrice}`);
 
     // 2. Update Shopify
-    // We need an offline session to interact with Admin API in background
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
-    const session = await shopify.sessionStorage.loadSession(sessionId);
+    const admin = await shopify.unauthenticated.admin(shop);
 
-    if (!session) {
-        console.error(`[Repricer] No offline session found for shop ${shop}`);
-        return null;
-    }
-
-    const client = new shopify.clients.Graphql({ session });
-
-    // Mutation to update first variant (Simplification for MVP)
-    // In strict mode, we should map specific variants, but usually dropshipping is 1-1 or simple variants.
-    // We'll fetch the product to get the first variant ID.
-
-    // A. Get Variant ID
     const productQuery = `query {
         product(id: "${shopifyProductId}") {
             variants(first: 1) {
@@ -62,7 +44,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     }`;
 
-    const productRes = await client.request(productQuery);
+    const productRes: any = await admin.graphql(productQuery).then(res => res.json());
     const variantId = productRes.data?.product?.variants?.edges[0]?.node?.id;
 
     if (!variantId) {
@@ -70,7 +52,6 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         return null;
     }
 
-    // B. Update Price
     const updateMutation = `mutation productVariantUpdate($input: ProductVariantInput!) {
         productVariantUpdate(input: $input) {
             productVariant {
@@ -84,14 +65,14 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     }`;
 
-    const updateRes = await client.request(updateMutation, {
+    const updateRes: any = await admin.graphql(updateMutation, {
         variables: {
             input: {
                 id: variantId,
                 price: targetPrice.toFixed(2)
             }
         }
-    });
+    }).then(res => res.json());
 
     if (updateRes.data?.productVariantUpdate?.userErrors?.length > 0) {
         console.error("[Repricer] Update failed:", updateRes.data.productVariantUpdate.userErrors);
