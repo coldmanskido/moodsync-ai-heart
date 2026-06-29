@@ -6,9 +6,6 @@ on:
   issue_comment:
     types: [created]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   cla:
     runs-on: ubuntu-latest
