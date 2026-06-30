@@ -94,20 +94,20 @@ export default function ProductDetail() {
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Selling Price</Text>
-                                    <Text as="p" variant="bodyMd" fontWeight="bold" textAlign="end">${product.currentPrice.toFixed(2)}</Text>
+                                    <Text as="p" variant="bodyMd" fontWeight="bold" alignment="end">${product.currentPrice.toFixed(2)}</Text>
                                 </InlineGrid>
                             </Box>
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Total Cost</Text>
-                                    <Text as="p" variant="bodyMd" fontWeight="bold" textAlign="end">${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}</Text>
+                                    <Text as="p" variant="bodyMd" fontWeight="bold" alignment="end">${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}</Text>
                                 </InlineGrid>
                             </Box>
                             <Divider />
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="headingMd">Profit Margin</Text>
-                                    <Text as="p" variant="headingMd" fontWeight="bold" textAlign="end" color="success">
+                                    <Text as="p" variant="headingMd" fontWeight="bold" tone="success" alignment="end">
                                         {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
                                     </Text>
                                 </InlineGrid>
