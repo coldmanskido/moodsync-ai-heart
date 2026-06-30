@@ -94,28 +94,22 @@ export default function ProductDetail() {
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Selling Price</Text>
-                                    <Box textAlign="end">
-                                        <Text as="p" variant="bodyMd" fontWeight="bold">${product.currentPrice.toFixed(2)}</Text>
-                                    </Box>
+                                    <Text as="p" variant="bodyMd" fontWeight="bold" alignment="end">${product.currentPrice.toFixed(2)}</Text>
                                 </InlineGrid>
                             </Box>
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Total Cost</Text>
-                                    <Box textAlign="end">
-                                        <Text as="p" variant="bodyMd" fontWeight="bold">${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}</Text>
-                                    </Box>
+                                    <Text as="p" variant="bodyMd" fontWeight="bold" alignment="end">${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}</Text>
                                 </InlineGrid>
                             </Box>
                             <Divider />
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="headingMd">Profit Margin</Text>
-                                    <Box textAlign="end">
-                                        <Text as="p" variant="headingMd" fontWeight="bold" tone="success">
-                                            {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
-                                        </Text>
-                                    </Box>
+                                    <Text as="p" variant="headingMd" fontWeight="bold" tone="success" alignment="end">
+                                        {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
+                                    </Text>
                                 </InlineGrid>
                             </Box>
                         </BlockStack>

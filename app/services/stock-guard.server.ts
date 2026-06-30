@@ -153,7 +153,7 @@ export async function syncInStock(options: StockOptions) {
         return;
     }
 
-    // 3. Set Inventory to 100
+    // 3. Set Inventory to 100 (Default restoration level for MVP)
     const mutation = `mutation inventorySetHandQuantities($input: InventorySetHandQuantitiesInput!) {
         inventorySetHandQuantities(input: $input) {
             inventoryAdjustmentGroup {
