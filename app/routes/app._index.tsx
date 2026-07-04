@@ -22,6 +22,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
+  const shopifyPrices: Record<string, number> = {};
 
   // Fetch Real Data without full history for performance
   const trackingEntries = await prisma.trackingEntry.findMany({
@@ -32,7 +33,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 
   // Fetch Shopify prices if needed (batch query for efficiency)
-  const shopifyPrices: Record<string, number> = {};
   const productIds = trackingEntries.map(e => e.shopifyProductId);
 
   if (productIds.length > 0) {

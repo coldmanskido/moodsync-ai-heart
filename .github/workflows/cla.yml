@@ -15,10 +15,11 @@ jobs:
         && contains(github.event.comment.body, 'signed')
       )
       || (github.event.pull_request && !github.event.pull_request.merged))
-      && github.repository_owner == 'coldmanskido'
+      && secrets.CLA_TOKEN
     steps:
-      - uses: Shopify/shopify-cla-action@v1
-        if: ${{ secrets.CLA_TOKEN != '' }}
+      - name: Contributor License Agreement
+        uses: Shopify/shopify-cla-action@v1
+        if: ${{ secrets.CLA_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cla-token: ${{ secrets.CLA_TOKEN }}
