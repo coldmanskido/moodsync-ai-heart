@@ -164,7 +164,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 // 3. UI: Product Card (Premium Design)
 function ProductRow({ product }: { product: any }) {
-    const fetcher = useFetcher();
+    const fetcher = useFetcher<any>();
     const isSaving = fetcher.state === "submitting";
     const isTracked = product.isTracked || fetcher.data?.status === "success";
 

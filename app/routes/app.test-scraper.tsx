@@ -22,7 +22,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const actionType = formData.get("actionType") || "scrape";
 
     if (actionType === "testEmail") {
-        const testEmail = formData.get("email") as string || session.email || "test@example.com";
+        const testEmail = formData.get("email") as string || (session as any).email || "test@example.com";
         const emailType = formData.get("emailType") as string;
 
         switch (emailType) {
@@ -101,13 +101,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 url.includes("dhgate") ? "DHgate Specialist" :
                     url.includes("alibaba") ? "Alibaba Specialist" : "Generic Fallback"
         });
-    } catch (error) {
+    } catch (error: any) {
         return json({ error: error.message || "Failed to fetch price" });
     }
 };
 
 export default function TestScraper() {
-    const actionData = useActionData<typeof action>();
+    const actionData = useActionData<any>();
     const navigation = useNavigation();
     const isLoading = navigation.state === "submitting" && navigation.formData?.get("actionType") !== "testEmail";
     const isSendingEmail = navigation.state === "submitting" && navigation.formData?.get("actionType") === "testEmail";
