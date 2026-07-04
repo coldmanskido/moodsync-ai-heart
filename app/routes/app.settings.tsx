@@ -30,7 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         settings = await prisma.storeSettings.create({
             data: {
                 shop,
-                alertEmail: session.email || ""
+                alertEmail: (session as any).email || ""
             }
         });
     }
@@ -191,22 +191,24 @@ export default function Settings() {
                                 onChange={setEmailEnabled}
                                 helpText="Broadly enable or disable all email outgoing from the app."
                             />
-                            <BlockStack gap="200" style={{ marginLeft: '24px' }}>
-                                <Checkbox
-                                    label="Price Drop Opportunities"
-                                    checked={priceDropEnabled && emailEnabled}
-                                    onChange={setPriceDropEnabled}
-                                    disabled={!emailEnabled}
-                                    helpText="Alert me when a supplier lowers their price (Profit Potential)."
-                                />
-                                <Checkbox
-                                    label="Morning Daily Digest"
-                                    checked={digestEnabled && emailEnabled}
-                                    onChange={setDigestEnabled}
-                                    disabled={!emailEnabled}
-                                    helpText="A summary of total profit protected and checks performed."
-                                />
-                            </BlockStack>
+                            <div style={{ marginLeft: '24px' }}>
+                                <BlockStack gap="200">
+                                    <Checkbox
+                                        label="Price Drop Opportunities"
+                                        checked={priceDropEnabled && emailEnabled}
+                                        onChange={setPriceDropEnabled}
+                                        disabled={!emailEnabled}
+                                        helpText="Alert me when a supplier lowers their price (Profit Potential)."
+                                    />
+                                    <Checkbox
+                                        label="Morning Daily Digest"
+                                        checked={digestEnabled && emailEnabled}
+                                        onChange={setDigestEnabled}
+                                        disabled={!emailEnabled}
+                                        helpText="A summary of total profit protected and checks performed."
+                                    />
+                                </BlockStack>
+                            </div>
                             <TextField
                                 label="Alert Destination Email"
                                 value={alertEmail}

@@ -33,16 +33,8 @@ export async function updateShopifyPrice(options: RepriceOptions) {
     console.log(`[Repricer] Target Margin: ${targetMarginPercent}%, New Price: ${targetPrice}`);
 
     // 2. Update Shopify
-    // We need an offline session to interact with Admin API in background
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
-    const session = await shopify.sessionStorage.loadSession(sessionId);
-
-    if (!session) {
-        console.error(`[Repricer] No offline session found for shop ${shop}`);
-        return null;
-    }
-
-    const client = new shopify.clients.Graphql({ session });
+    // We need an unauthenticated admin context for background tasks
+    const { admin } = await (shopify as any).unauthenticated.admin(shop);
 
     // Mutation to update first variant (Simplification for MVP)
     // In strict mode, we should map specific variants, but usually dropshipping is 1-1 or simple variants.
@@ -62,8 +54,9 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     }`;
 
-    const productRes = await client.request(productQuery);
-    const variantId = productRes.data?.product?.variants?.edges[0]?.node?.id;
+    const productRes = await admin.graphql(productQuery);
+    const productResJson: any = await productRes.json();
+    const variantId = productResJson.data?.product?.variants?.edges[0]?.node?.id;
 
     if (!variantId) {
         console.error("[Repricer] Could not find variant ID to update.");
@@ -84,7 +77,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     }`;
 
-    const updateRes = await client.request(updateMutation, {
+    const updateRes = await admin.graphql(updateMutation, {
         variables: {
             input: {
                 id: variantId,
@@ -93,8 +86,9 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     });
 
-    if (updateRes.data?.productVariantUpdate?.userErrors?.length > 0) {
-        console.error("[Repricer] Update failed:", updateRes.data.productVariantUpdate.userErrors);
+    const updateResJson: any = await updateRes.json();
+    if (updateResJson.data?.productVariantUpdate?.userErrors?.length > 0) {
+        console.error("[Repricer] Update failed:", updateResJson.data.productVariantUpdate.userErrors);
         return null;
     }
 
