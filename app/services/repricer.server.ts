@@ -33,7 +33,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
     console.log(`[Repricer] Target Margin: ${targetMarginPercent}%, New Price: ${targetPrice}`);
 
     // 2. Update Shopify
-    // We need an offline session to interact with Admin API in background
+    // We need an unauthenticated admin context for background tasks
     const { admin } = await (shopify as any).unauthenticated.admin(shop);
 
     // Mutation to update first variant (Simplification for MVP)
@@ -86,8 +86,9 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         }
     });
 
-    if (updateRes.data?.productVariantUpdate?.userErrors?.length > 0) {
-        console.error("[Repricer] Update failed:", updateRes.data.productVariantUpdate.userErrors);
+    const updateResJson: any = await updateRes.json();
+    if (updateResJson.data?.productVariantUpdate?.userErrors?.length > 0) {
+        console.error("[Repricer] Update failed:", updateResJson.data.productVariantUpdate.userErrors);
         return null;
     }
 
