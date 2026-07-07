@@ -9,6 +9,7 @@ import {
     BlockStack,
     TextField,
     InlineGrid,
+    InlineStack,
     Box,
     Divider,
 } from "@shopify/polaris";
@@ -94,22 +95,32 @@ export default function ProductDetail() {
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Selling Price</Text>
-                                    <Text as="p" variant="bodyMd" fontWeight="bold" textAlign="end">${product.currentPrice.toFixed(2)}</Text>
+                                    <InlineStack align="end">
+                                        <Text as="p" variant="bodyMd" fontWeight="bold">
+                                            ${product.currentPrice.toFixed(2)}
+                                        </Text>
+                                    </InlineStack>
                                 </InlineGrid>
                             </Box>
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="bodyMd">Total Cost</Text>
-                                    <Text as="p" variant="bodyMd" fontWeight="bold" textAlign="end">${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}</Text>
+                                    <InlineStack align="end">
+                                        <Text as="p" variant="bodyMd" fontWeight="bold">
+                                            ${(parseFloat(cost) + parseFloat(shipping)).toFixed(2)}
+                                        </Text>
+                                    </InlineStack>
                                 </InlineGrid>
                             </Box>
                             <Divider />
                             <Box>
                                 <InlineGrid columns={2}>
                                     <Text as="p" variant="headingMd">Profit Margin</Text>
-                                    <Text as="p" variant="headingMd" fontWeight="bold" textAlign="end" color="success">
-                                        {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
-                                    </Text>
+                                    <InlineStack align="end">
+                                        <Text as="p" variant="headingMd" fontWeight="bold" tone="success">
+                                            {(((product.currentPrice - (parseFloat(cost) + parseFloat(shipping))) / product.currentPrice) * 100).toFixed(1)}%
+                                        </Text>
+                                    </InlineStack>
                                 </InlineGrid>
                             </Box>
                         </BlockStack>
