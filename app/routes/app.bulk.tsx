@@ -166,7 +166,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 function ProductRow({ product }: { product: any }) {
     const fetcher = useFetcher();
     const isSaving = fetcher.state === "submitting";
-    const isTracked = product.isTracked || fetcher.data?.status === "success";
+    const isTracked = product.isTracked || (fetcher.data as any)?.status === "success";
 
     return (
         <div style={{ transition: 'all 0.2s ease' }}>

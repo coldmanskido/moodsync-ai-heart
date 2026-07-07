@@ -34,7 +34,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
 
     // 2. Update Shopify
     // We need an offline session to interact with Admin API in background
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
+    const sessionId = (shopify.sessionStorage as any).getOfflineId(shop);
     const session = await shopify.sessionStorage.loadSession(sessionId);
 
     if (!session) {
@@ -42,7 +42,7 @@ export async function updateShopifyPrice(options: RepriceOptions) {
         return null;
     }
 
-    const client = new shopify.clients.Graphql({ session });
+    const client = new (shopify as any).clients.Graphql({ session });
 
     // Mutation to update first variant (Simplification for MVP)
     // In strict mode, we should map specific variants, but usually dropshipping is 1-1 or simple variants.

@@ -1,9 +1,9 @@
 import shopify from "../shopify.server";
 
-export async function syncOutOfStock(shop: string, shopifyProductId: string) {
+export async function syncOutOfStock({ shop, shopifyProductId, cost }: { shop: string; shopifyProductId: string; cost?: number }) {
     console.log(`[Stock Guard] Syncing OOS for ${shopifyProductId}...`);
 
-    const sessionId = shopify.sessionStorage.getOfflineId(shop);
+    const sessionId = (shopify.sessionStorage as any).getOfflineId(shop);
     const session = await shopify.sessionStorage.loadSession(sessionId);
 
     if (!session) {
@@ -11,7 +11,7 @@ export async function syncOutOfStock(shop: string, shopifyProductId: string) {
         return;
     }
 
-    const client = new shopify.clients.Graphql({ session });
+    const client = new (shopify as any).clients.Graphql({ session });
 
     // 1. Get Inventory Item ID (via Variant)
     // We assume 1 variant for MVP simplified approach
