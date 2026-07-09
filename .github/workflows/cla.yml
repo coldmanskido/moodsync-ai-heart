@@ -9,17 +9,15 @@ on:
 jobs:
   cla:
     runs-on: ubuntu-latest
-    if: |
-      github.repository == 'coldmanskido/moodsync-ai-heart' && (
-        (github.event.issue.pull_request
-          && !github.event.issue.pull_request.merged_at
-          && contains(github.event.comment.body, 'signed')
-        )
-        || (github.event.pull_request && !github.event.pull_request.merged)
+    if: >-
+      github.repository == 'coldmanskido/moodsync-ai-heart' &&
+      (
+        (github.event.issue.pull_request && !github.event.issue.pull_request.merged_at && contains(github.event.comment.body, 'signed')) ||
+        (github.event.pull_request && !github.event.pull_request.merged)
       )
     steps:
       - uses: Shopify/shopify-cla-action@v1
-        if: ${{ secrets.CLA_TOKEN }}
+        if: github.repository == 'coldmanskido/moodsync-ai-heart' && secrets.CLA_TOKEN != ''
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          cla-token: ${{ secrets.CLA_TOKEN }}
+          cla-token: ${{ secrets.CLA_TOKEN || 'required-but-missing' }}
